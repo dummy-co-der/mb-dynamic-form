@@ -35,8 +35,7 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
     const commonLabel = (
         <label
             htmlFor={fieldDef.name}
-            className="mb-1 block text-sm font-semibold 
-                       text-slate-800 dark:text-slate-200"
+            className="mb-1 block text-sm font-semibold text-slate-800"
         >
             {fieldDef.label}
             {fieldDef.required && <span className="ml-1 text-xs text-red-500">*</span>}
@@ -47,7 +46,7 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
         <p className="mt-1 text-xs font-medium text-red-600">{error}</p>
     ) : (
         fieldDef.placeholder && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
                 {fieldDef.placeholder}
             </p>
         )
@@ -56,10 +55,10 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
     const baseInputClasses =
         `block w-full rounded-lg border px-3.5 py-2.5 text-sm shadow-sm
          transition-all duration-150 focus:outline-none focus:ring-2
-         bg-white dark:bg-slate-800 dark:text-slate-100
+         bg-white
          ${error
             ? 'border-red-400 focus:border-red-500 focus:ring-red-400/40'
-            : 'border-slate-300 hover:border-slate-400 focus:border-blue-500 focus:ring-blue-400/40 dark:border-slate-700 dark:hover:border-slate-500'
+            : 'border-slate-300 hover:border-slate-400 focus:border-blue-500 focus:ring-blue-400/40'
         }`;
 
     let control: React.ReactNode = null;
@@ -101,7 +100,7 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
                     transition-all duration-200
                     ${formField.state.value
                         ? 'bg-blue-600'
-                        : 'bg-slate-300 dark:bg-slate-600'
+                        : 'bg-slate-300'
                     }`}
             >
                 <span
@@ -170,18 +169,18 @@ const FormInner: React.FC<{ schema: FormSchema }> = ({ schema }) => {
     return (
         <div className="
             space-y-6 rounded-xl 
-            bg-white dark:bg-slate-900 
+            bg-white
             p-6 sm:p-8 
             shadow-lg 
-            ring-1 ring-slate-200 dark:ring-slate-700
+            ring-1 ring-slate-200
             transition
         ">
             <div className="space-y-1">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+                <h2 className="text-xl font-bold text-slate-800">
                     {schema.title}
                 </h2>
                 {schema.description && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-slate-600">
                         {schema.description}
                     </p>
                 )}
@@ -235,12 +234,12 @@ export const FormPage: React.FC = () => {
     const { data: schema, isLoading, isError } = useFormSchema();
 
     if (isLoading) {
-        return <p className="text-sm text-slate-600 dark:text-slate-300 animate-pulse">Loading form...</p>;
+        return <p className="text-sm text-slate-600 animate-pulse">Loading form...</p>;
     }
 
     if (isError || !schema) {
         return (
-            <p className="text-sm text-red-600 dark:text-red-400">
+            <p className="text-sm text-red-600">
                 Failed to load form schema. Please try again later.
             </p>
         );

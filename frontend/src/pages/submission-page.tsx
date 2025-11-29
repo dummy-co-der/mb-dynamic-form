@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 import {
     ColumnDef,
     flexRender,
     getCoreRowModel,
-    useReactTable
-} from '@tanstack/react-table';
-import { useSubmissions } from '../api/submissions';
-import type { Submission } from '../api/types';
+    useReactTable,
+} from "@tanstack/react-table";
+import { useSubmissions } from "../api/submissions";
+import type { Submission } from "../api/types";
 
 interface SubmissionsResponse {
     data: Submission[];
@@ -17,26 +17,26 @@ interface SubmissionsResponse {
 
 const columns: ColumnDef<Submission>[] = [
     {
-        header: 'ID',
-        accessorKey: 'id'
+        header: "ID",
+        accessorKey: "id",
     },
     {
-        header: 'Full Name',
+        header: "Full Name",
         cell: ({ row }) => {
             const data = row.original.data as Record<string, unknown>;
-            return <span>{(data.fullName as string) ?? '-'}</span>;
-        }
+            return <span>{(data.fullName as string) ?? "-"}</span>;
+        },
     },
     {
-        header: 'Department',
+        header: "Department",
         cell: ({ row }) => {
             const data = row.original.data as Record<string, unknown>;
-            return <span>{(data.department as string) ?? '-'}</span>;
-        }
+            return <span>{(data.department as string) ?? "-"}</span>;
+        },
     },
     {
-        header: 'Created At',
-        accessorKey: 'createdAt',
+        header: "Created At",
+        accessorKey: "createdAt",
         cell: ({ getValue }) => {
             const value = getValue<string>();
             return (
@@ -44,14 +44,16 @@ const columns: ColumnDef<Submission>[] = [
                     {new Date(value).toLocaleString()}
                 </span>
             );
-        }
-    }
+        },
+    },
 ];
 
 export const SubmissionsPage: React.FC = () => {
     const [page, setPage] = React.useState(1);
     const [limit, setLimit] = React.useState(5);
-    const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
+    const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">(
+        "desc"
+    );
 
     const query = useSubmissions(page, limit, sortDirection);
     const data = query.data as SubmissionsResponse | undefined;
@@ -60,27 +62,29 @@ export const SubmissionsPage: React.FC = () => {
     const table = useReactTable({
         data: submissions,
         columns,
-        getCoreRowModel: getCoreRowModel()
+        getCoreRowModel: getCoreRowModel(),
     });
 
     return (
-        <div className="
+        <div
+            className="
             space-y-5 rounded-xl p-5 sm:p-7
-            bg-white dark:bg-slate-900
+            bg-white
             shadow-xl ring-1 
-            ring-slate-200 dark:ring-slate-800
+            ring-slate-200
             transition
-        ">
+        "
+        >
             {/* Header */}
-            <div className="
+            <div
+                className="
                 flex flex-col sm:flex-row items-start sm:items-center 
                 justify-between gap-4
-            ">
+            "
+            >
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                        Submissions
-                    </h2>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                    <h2 className="text-xl font-bold text-slate-800">Submissions</h2>
+                    <p className="text-sm text-slate-600">
                         Server-side pagination & sorting by created date.
                     </p>
                 </div>
@@ -88,18 +92,18 @@ export const SubmissionsPage: React.FC = () => {
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-3 text-xs">
                     <label className="flex items-center gap-1">
-                        <span className="text-slate-700 dark:text-slate-300">Sort:</span>
+                        <span className="text-slate-700">Sort:</span>
                         <select
                             value={sortDirection}
                             onChange={(e) => {
                                 setPage(1);
-                                setSortDirection(e.target.value as 'asc' | 'desc');
+                                setSortDirection(e.target.value as "asc" | "desc");
                             }}
                             className="
-                                rounded border border-slate-300 dark:border-slate-700 
-                                bg-white dark:bg-slate-800 
-                                text-slate-800 dark:text-slate-200
-                                px-2 py-1 shadow-sm
+                                rounded border border-slate-300
+                                bg-white
+                                text-slate-800
+                                px-2.5 py-1.5 shadow-sm
                             "
                         >
                             <option value="desc">Newest first</option>
@@ -108,7 +112,7 @@ export const SubmissionsPage: React.FC = () => {
                     </label>
 
                     <label className="flex items-center gap-1">
-                        <span className="text-slate-700 dark:text-slate-300">Per Page:</span>
+                        <span className="text-slate-700">Per Page:</span>
                         <select
                             value={limit}
                             onChange={(e) => {
@@ -116,10 +120,10 @@ export const SubmissionsPage: React.FC = () => {
                                 setLimit(Number(e.target.value));
                             }}
                             className="
-                                rounded border border-slate-300 dark:border-slate-700 
-                                bg-white dark:bg-slate-800
-                                text-slate-800 dark:text-slate-200
-                                px-2 py-1 shadow-sm
+                                rounded border border-slate-300 
+                                bg-white 
+                                text-slate-800 
+                                px-2.5 py-1.5 shadow-sm
                             "
                         >
                             <option value={5}>5</option>
@@ -132,18 +136,18 @@ export const SubmissionsPage: React.FC = () => {
 
             {/* Content State */}
             {query.isLoading ? (
-                <p className="text-sm text-slate-600 dark:text-slate-300">Loading submissions...</p>
+                <p className="text-sm text-slate-600">Loading submissions...</p>
             ) : query.isError ? (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-red-600">
                     Failed to load submissions. Please try again later.
                 </p>
             ) : submissions.length === 0 ? (
-                <p className="text-sm text-slate-600 dark:text-slate-400">No submissions yet.</p>
+                <p className="text-sm text-slate-600">No submissions yet.</p>
             ) : (
                 <>
                     <div>
-                        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-800">
+                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                            <thead className="bg-slate-50">
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <tr key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => (
@@ -152,7 +156,7 @@ export const SubmissionsPage: React.FC = () => {
                                                 className="
                                                     px-3 py-2 text-left 
                                                     text-xs font-semibold uppercase tracking-wide 
-                                                    text-slate-600 dark:text-slate-300
+                                                    text-slate-600
                                                 "
                                             >
                                                 {header.isPlaceholder
@@ -167,12 +171,12 @@ export const SubmissionsPage: React.FC = () => {
                                 ))}
                             </thead>
 
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900">
+                            <tbody className="divide-y divide-slate-200 bg-white">
                                 {table.getRowModel().rows.map((row) => (
                                     <tr
                                         key={row.id}
                                         className="
-                                            hover:bg-slate-50 dark:hover:bg-slate-800/60 
+                                            hover:bg-slate-50
                                             transition
                                         "
                                     >
@@ -181,7 +185,7 @@ export const SubmissionsPage: React.FC = () => {
                                                 key={cell.id}
                                                 className="
                                                     px-3 py-2 align-top text-xs 
-                                                    text-slate-700 dark:text-slate-300
+                                                    text-slate-700 
                                                 "
                                             >
                                                 {flexRender(
@@ -197,11 +201,13 @@ export const SubmissionsPage: React.FC = () => {
                     </div>
 
                     {/* Pagination */}
-                    <div className="
+                    <div
+                        className="
                         flex flex-col sm:flex-row items-start sm:items-center 
                         justify-between gap-3 pt-3 text-xs 
-                        text-slate-700 dark:text-slate-300
-                    ">
+                        text-slate-700
+                    "
+                    >
                         <div>
                             Page {data?.page} of {data?.totalPages} • Total {data?.total}
                         </div>
@@ -209,8 +215,8 @@ export const SubmissionsPage: React.FC = () => {
                         <div className="flex gap-2">
                             <button
                                 className="
-                                    rounded border border-slate-300 dark:border-slate-700 
-                                    bg-white dark:bg-slate-800 
+                                    rounded border border-slate-300 
+                                    bg-white
                                     px-3 py-1 
                                     disabled:opacity-50 disabled:cursor-not-allowed
                                 "
@@ -222,16 +228,14 @@ export const SubmissionsPage: React.FC = () => {
 
                             <button
                                 className="
-                                    rounded border border-slate-300 dark:border-slate-700 
-                                    bg-white dark:bg-slate-800 
+                                    rounded border border-slate-300
+                                    bg-white
                                     px-3 py-1 
                                     disabled:opacity-50 disabled:cursor-not-allowed
                                 "
                                 disabled={!data || page >= data.totalPages || query.isFetching}
                                 onClick={() =>
-                                    setPage((p) =>
-                                        !data ? p : Math.min(data.totalPages, p + 1)
-                                    )
+                                    setPage((p) => (!data ? p : Math.min(data.totalPages, p + 1)))
                                 }
                             >
                                 Next
@@ -239,7 +243,8 @@ export const SubmissionsPage: React.FC = () => {
                         </div>
                     </div>
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 };
