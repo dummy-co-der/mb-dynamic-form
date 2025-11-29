@@ -59,7 +59,7 @@ exports.formSchema = {
         {
             name: "skills",
             label: "Primary Skills",
-            type: "select",
+            type: "multi-select",
             placeholder: "Select skills",
             required: true,
             options: [

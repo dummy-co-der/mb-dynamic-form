@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addSubmission = addSubmission;
 exports.getPaginatedSubmissions = getPaginatedSubmissions;
+exports.getSubmissionById = getSubmissionById;
+exports.updateSubmission = updateSubmission;
+exports.deleteSubmission = deleteSubmission;
 // @ts-ignore
 const uuid_1 = require("uuid");
 const submissions = [];
@@ -33,4 +36,26 @@ function getPaginatedSubmissions({ page = 1, limit = 10, sortDirection = 'desc' 
         total,
         totalPages
     };
+}
+function getSubmissionById(id) {
+    return submissions.find(s => s.id === id) || null;
+}
+function updateSubmission(id, payload) {
+    const index = submissions.findIndex(s => s.id === id);
+    if (index === -1) {
+        return null;
+    }
+    submissions[index] = {
+        ...submissions[index],
+        data: payload
+    };
+    return submissions[index];
+}
+function deleteSubmission(id) {
+    const index = submissions.findIndex(s => s.id === id);
+    if (index === -1) {
+        return false;
+    }
+    submissions.splice(index, 1);
+    return true;
 }

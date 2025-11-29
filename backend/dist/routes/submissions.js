@@ -44,4 +44,50 @@ router.get('/', (req, res, next) => {
         next(err);
     }
 });
+router.get('/:id', (req, res, next) => {
+    try {
+        const submission = (0, data_1.getSubmissionById)(req.params.id);
+        if (!submission) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+        res.json(submission);
+    }
+    catch (err) {
+        next(err);
+    }
+});
+router.put('/:id', (req, res, next) => {
+    try {
+        const { isValid, errors, normalized } = (0, data_1.validateSubmission)(req.body, data_1.formSchema);
+        if (!isValid) {
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors
+            });
+        }
+        const updated = (0, data_1.updateSubmission)(req.params.id, normalized);
+        if (!updated) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+        res.json({
+            id: updated.id,
+            createdAt: updated.createdAt
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+router.delete('/:id', (req, res, next) => {
+    try {
+        const deleted = (0, data_1.deleteSubmission)(req.params.id);
+        if (!deleted) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+        res.status(204).send();
+    }
+    catch (err) {
+        next(err);
+    }
+});
 exports.default = router;
