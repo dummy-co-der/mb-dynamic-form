@@ -3,6 +3,7 @@ import { useForm } from '@tanstack/react-form';
 import { FormField, FormSchema } from '../api/types';
 import { useFormSchema } from '../api/form';
 import { useCreateSubmission } from '../api/submissions';
+import { Alert } from '../components/alert';
 
 type ServerErrors = Record<string, string>;
 
@@ -186,20 +187,10 @@ const FormInner: React.FC<{ schema: FormSchema }> = ({ schema }) => {
                 )}
             </div>
 
-            {successMessage && (
-                <div className="rounded-lg border border-green-300 bg-green-50 
-                                dark:bg-green-900/30 dark:border-green-700 
-                                px-4 py-2 text-sm text-green-800 dark:text-green-300 shadow-sm">
-                    {successMessage}
-                </div>
-            )}
+            {successMessage && <Alert type="success" message={successMessage} />}
 
             {createSubmission.isError && !Object.keys(serverErrors).length && (
-                <div className="rounded-lg border border-red-300 bg-red-50 
-                                dark:bg-red-900/30 dark:border-red-700
-                                px-4 py-2 text-sm text-red-800 dark:text-red-300 shadow-sm">
-                    Something went wrong while submitting. Please try again.
-                </div>
+                <Alert type="error" message="Something went wrong while submitting. Please try again." />
             )}
 
             <form
@@ -255,9 +246,5 @@ export const FormPage: React.FC = () => {
         );
     }
 
-    return (
-        <>
-            <FormInner schema={schema} />
-        </>
-    );
+    return <FormInner schema={schema} />;
 };
