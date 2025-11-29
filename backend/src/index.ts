@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import morgan from "morgan";
+import formSchemaRoute from "./routes/form-schema";
+import submissionsRoute from "./routes/submissions";
 
 const app = express();
 
@@ -12,6 +14,8 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend is running in TypeScript!" });
 });
 
+app.use("/api/form-schema", formSchemaRoute);
+app.use("/api/submissions", submissionsRoute);
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });
 });
