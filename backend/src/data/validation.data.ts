@@ -29,6 +29,21 @@ export function validateSubmission(
             value = Boolean(raw);
         }
 
+        if (field.type === 'multi-select') {
+            if (raw === undefined || raw === null || raw === '') {
+                value = [];
+            } else if (!Array.isArray(raw)) {
+                value = [raw];
+            } else {
+                value = raw;
+            }
+
+            // Validate minSelected
+            if (cfg.minSelected !== undefined && value.length < cfg.minSelected) {
+                errors[field.name] = `Please select at least ${cfg.minSelected} ${cfg.minSelected === 1 ? 'option' : 'options'}`;
+            }
+        }
+
         if (['text', 'textarea', 'date', 'select'].includes(field.type)) {
             if (typeof raw === 'string') {
                 value = raw.trim();
@@ -62,7 +77,12 @@ export function validateSubmission(
             }
         }
 
-        normalized[field.name] = value ?? null;
+        // For multi-select, use empty array instead of null if no value
+        if (field.type === 'multi-select') {
+            normalized[field.name] = value ?? [];
+        } else {
+            normalized[field.name] = value ?? null;
+        }
     }
 
     return {

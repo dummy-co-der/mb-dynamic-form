@@ -45,7 +45,7 @@ export default function App() {
             Submissions
           </button>
         </div>
-        <div>{page === "form" ? <FormPage /> : <SubmissionsPage />}</div>
+        <div>{page === "form" ? <FormPage /> : <SubmissionsPage onNavigateToForm={() => setPage("form")} />}</div>
       </div>
     </div>
   );

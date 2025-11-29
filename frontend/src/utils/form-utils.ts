@@ -10,6 +10,9 @@ export function buildDefaultValues(schema: FormSchema): Record<string, unknown> 
                 case 'switch':
                     defaults[field.name] = false;
                     break;
+                case 'multi-select':
+                    defaults[field.name] = [];
+                    break;
                 default:
                     defaults[field.name] = '';
             }

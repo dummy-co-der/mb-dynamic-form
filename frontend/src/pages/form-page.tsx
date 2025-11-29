@@ -2,8 +2,9 @@ import React from 'react';
 import { useForm } from '@tanstack/react-form';
 import { FormField, FormSchema } from '../api/types';
 import { useFormSchema } from '../api/form';
-import { useCreateSubmission } from '../api/submissions';
+import { useCreateSubmission, useUpdateSubmission } from '../api/submissions';
 import { Alert } from '../components/alert';
+import type { Submission } from '../api/types';
 
 type ServerErrors = Record<string, string>;
 
@@ -16,6 +17,9 @@ function buildDefaultValues(schema: FormSchema): Record<string, unknown> {
             switch (field.type) {
                 case 'switch':
                     defaults[field.name] = false;
+                    break;
+                case 'multi-select':
+                    defaults[field.name] = [];
                     break;
                 default:
                     defaults[field.name] = '';
@@ -91,6 +95,46 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
                 ))}
             </select>
         );
+    } else if (fieldDef.type === 'multi-select') {
+        const selectedValues = (formField.state.value as string[]) ?? [];
+        control = (
+            <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                    {fieldDef.options?.map((opt) => {
+                        const isSelected = selectedValues.includes(opt.value);
+                        return (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                    const newValue = isSelected
+                                        ? selectedValues.filter(v => v !== opt.value)
+                                        : [...selectedValues, opt.value];
+                                    formField.handleChange(newValue);
+                                }}
+                                onBlur={formField.handleBlur}
+                                className={`
+                                    px-4 py-2 rounded-lg text-sm font-medium
+                                    transition-all duration-150
+                                    border-2
+                                    ${isSelected
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                        : 'bg-white text-slate-700 border-slate-300 hover:border-blue-400 hover:bg-blue-50'
+                                    }
+                                    ${error
+                                        ? 'border-red-400 focus:border-red-500 focus:ring-red-400/40'
+                                        : ''
+                                    }
+                                    focus:outline-none focus:ring-2 focus:ring-blue-400/40
+                                `}
+                            >
+                                {opt.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
     } else if (fieldDef.type === 'switch') {
         control = (
             <button
@@ -144,27 +188,90 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
     );
 };
 
-const FormInner: React.FC<{ schema: FormSchema }> = ({ schema }) => {
+function checkFieldValid(fieldDef: FormField, value: unknown): boolean {
+    if (fieldDef.required) {
+        if (fieldDef.type === 'multi-select') {
+            const arr = (value as string[]) ?? [];
+            if (arr.length === 0) return false;
+            if (fieldDef.validations?.minSelected && arr.length < fieldDef.validations.minSelected) {
+                return false;
+            }
+        } else if (value === undefined || value === null || value === '') {
+            return false;
+        }
+    }
+    return true;
+}
+
+const FormInner: React.FC<{ schema: FormSchema; editSubmission?: Submission | null }> = ({ schema, editSubmission }) => {
     const createSubmission = useCreateSubmission();
+    const updateSubmission = useUpdateSubmission();
     const [serverErrors, setServerErrors] = React.useState<ServerErrors>({});
     const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+    const isEditMode = !!editSubmission;
 
     const form = useForm({
-        defaultValues: buildDefaultValues(schema),
+        defaultValues: editSubmission?.data as Record<string, unknown> || buildDefaultValues(schema),
         onSubmit: async ({ value }) => {
             setServerErrors({});
             setSuccessMessage(null);
 
             try {
-                const result = await createSubmission.mutateAsync(value);
-                setSuccessMessage(`Submission saved with ID: ${result.id}`);
-                form.reset();
+                if (isEditMode && editSubmission) {
+                    await updateSubmission.mutateAsync({ id: editSubmission.id, payload: value });
+                    setSuccessMessage(`Submission updated successfully!`);
+                    sessionStorage.removeItem('editSubmission');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const result = await createSubmission.mutateAsync(value);
+                    setSuccessMessage(`Submission saved with ID: ${result.id}`);
+                    form.reset();
+                }
             } catch (err: any) {
                 const apiErrors: ServerErrors = err?.response?.data?.errors ?? {};
                 setServerErrors(apiErrors);
             }
         }
     });
+
+    const [formValues, setFormValues] = React.useState<Record<string, unknown>>(form.state.values);
+    const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
+
+    React.useEffect(() => {
+        const subscription = form.store.subscribe(() => {
+            setFormValues(form.state.values);
+            // Collect errors from fieldMeta
+            const errors: Record<string, string> = {};
+            Object.keys(form.state.fieldMeta).forEach(fieldName => {
+                const meta = form.state.fieldMeta[fieldName];
+                if (meta?.errors && meta.errors.length > 0) {
+                    errors[fieldName] = meta.errors[0];
+                }
+            });
+            setFieldErrors(errors);
+        });
+        return () => subscription();
+    }, [form]);
+
+    // Check if form is valid
+    const isFormValid = React.useMemo(() => {
+        if (Object.keys(fieldErrors).length > 0) {
+            return false;
+        }
+
+        // Check if all required fields are valid
+        for (const fieldDef of schema.fields) {
+            if (!checkFieldValid(fieldDef, formValues[fieldDef.name])) {
+                return false;
+            }
+        }
+        return true;
+    }, [formValues, fieldErrors, schema]);
+
+    const isSubmitting = createSubmission.isPending || updateSubmission.isPending;
+    const isSubmitDisabled = !isFormValid || isSubmitting;
 
     return (
         <div className="
@@ -188,7 +295,7 @@ const FormInner: React.FC<{ schema: FormSchema }> = ({ schema }) => {
 
             {successMessage && <Alert type="success" message={successMessage} />}
 
-            {createSubmission.isError && !Object.keys(serverErrors).length && (
+            {(createSubmission.isError || updateSubmission.isError) && !Object.keys(serverErrors).length && (
                 <Alert type="error" message="Something went wrong while submitting. Please try again." />
             )}
 
@@ -201,28 +308,61 @@ const FormInner: React.FC<{ schema: FormSchema }> = ({ schema }) => {
                 className="space-y-5"
             >
                 {schema.fields.map((fieldDef) => (
-                    <form.Field key={fieldDef.name} name={fieldDef.name}>
-                        {(fieldField: any) => (
-                            <FieldRenderer
-                                fieldDef={fieldDef}
-                                formField={fieldField}
-                                error={serverErrors[fieldDef.name]}
-                            />
-                        )}
+                    <form.Field
+                        key={fieldDef.name}
+                        name={fieldDef.name}
+                        validators={{
+                            onChange: ({ value }) => {
+                                // Required field validation
+                                if (fieldDef.required) {
+                                    if (fieldDef.type === 'multi-select') {
+                                        const arr = (value as string[]) ?? [];
+                                        if (arr.length === 0) {
+                                            return 'This field is required';
+                                        }
+                                    } else if (value === undefined || value === null || value === '') {
+                                        return 'This field is required';
+                                    }
+                                }
+
+                                // Multi-select minSelected validation
+                                if (fieldDef.type === 'multi-select' && fieldDef.validations?.minSelected) {
+                                    const arr = (value as string[]) ?? [];
+                                    const min = fieldDef.validations.minSelected;
+                                    if (arr.length < min) {
+                                        return `Please select at least ${min} ${min === 1 ? 'option' : 'options'}`;
+                                    }
+                                }
+
+                                return undefined;
+                            }
+                        }}
+                    >
+                        {(fieldField: any) => {
+                            const validationError = fieldField.state.meta.errors?.[0];
+                            const error = serverErrors[fieldDef.name] || validationError;
+                            return (
+                                <FieldRenderer
+                                    fieldDef={fieldDef}
+                                    formField={fieldField}
+                                    error={error}
+                                />
+                            );
+                        }}
                     </form.Field>
                 ))}
 
                 <div className="flex items-center gap-3 pt-3">
                     <button
                         type="submit"
-                        disabled={createSubmission.isPending}
+                        disabled={isSubmitDisabled}
                         className="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 
                                    text-sm font-medium text-white shadow-md 
                                    hover:bg-blue-700 active:bg-blue-800 
                                    disabled:opacity-60 disabled:cursor-not-allowed 
-                                   transition-all duration-150"
+                                   transition-all duration-150 cursor-pointer"
                     >
-                        {createSubmission.isPending ? 'Submitting...' : 'Submit'}
+                        {isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : (isEditMode ? 'Update' : 'Submit')}
                     </button>
                 </div>
             </form>
@@ -232,6 +372,20 @@ const FormInner: React.FC<{ schema: FormSchema }> = ({ schema }) => {
 
 export const FormPage: React.FC = () => {
     const { data: schema, isLoading, isError } = useFormSchema();
+    const [editSubmission, setEditSubmission] = React.useState<Submission | null>(null);
+
+    React.useEffect(() => {
+        const editData = sessionStorage.getItem('editSubmission');
+        if (editData) {
+            try {
+                const submission = JSON.parse(editData) as Submission;
+                setEditSubmission(submission);
+            } catch (e) {
+                console.error('Failed to parse edit submission data', e);
+                sessionStorage.removeItem('editSubmission');
+            }
+        }
+    }, []);
 
     if (isLoading) {
         return <p className="text-sm text-slate-600 animate-pulse">Loading form...</p>;
@@ -245,5 +399,5 @@ export const FormPage: React.FC = () => {
         );
     }
 
-    return <FormInner schema={schema} />;
+    return <FormInner schema={schema} editSubmission={editSubmission} />;
 };

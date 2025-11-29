@@ -2,6 +2,7 @@ export type FieldType =
     | 'text'
     | 'number'
     | 'select'
+    | 'multi-select'
     | 'date'
     | 'textarea'
     | 'switch';
@@ -15,6 +16,15 @@ export interface FormField {
     options?: { label: string; value: string }[];
     defaultValue?: unknown;
     inputType?: string;
+    validations?: {
+        minSelected?: number;
+        minLength?: number;
+        maxLength?: number;
+        min?: number;
+        max?: number;
+        pattern?: string;
+        message?: string;
+    };
 }
 
 export interface FormSchema {

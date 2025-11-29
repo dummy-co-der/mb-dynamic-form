@@ -43,3 +43,31 @@ export function getPaginatedSubmissions({ page = 1, limit = 10, sortDirection = 
         totalPages
     };
 }
+
+export function getSubmissionById(id: string): Submission | null {
+    return submissions.find(s => s.id === id) || null;
+}
+
+export function updateSubmission(id: string, payload: any): Submission | null {
+    const index = submissions.findIndex(s => s.id === id);
+    if (index === -1) {
+        return null;
+    }
+
+    submissions[index] = {
+        ...submissions[index],
+        data: payload
+    };
+
+    return submissions[index];
+}
+
+export function deleteSubmission(id: string): boolean {
+    const index = submissions.findIndex(s => s.id === id);
+    if (index === -1) {
+        return false;
+    }
+
+    submissions.splice(index, 1);
+    return true;
+}
