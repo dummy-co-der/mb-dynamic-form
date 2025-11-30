@@ -10,7 +10,7 @@ interface Submission {
 }
 
 // Path to your JSON file
-const dataFilePath = path.join(__dirname, 'submissions.json');
+const dataFilePath = path.join('/tmp', 'submissions.json');
 let submissions: Submission[] = [];
 
 function loadSubmissions() {
