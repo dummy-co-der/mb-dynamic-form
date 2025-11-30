@@ -296,8 +296,7 @@ const FormInner: React.FC<{ schema: FormSchema; editSubmission?: Submission | nu
             {successMessage && <Alert type="success" message={successMessage} />}
 
             {(createSubmission.isError || updateSubmission.isError) && !Object.keys(serverErrors).length && (
-                // <Alert type="error" message="Something went wrong while submitting. Please try again." />
-                <Alert type="success" message="Submission saved successfully." />
+                <Alert type="error" message="Something went wrong while submitting. Please try again." />
             )}
 
             <form

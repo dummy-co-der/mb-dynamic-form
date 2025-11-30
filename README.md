@@ -283,11 +283,12 @@ The project uses Tailwind CSS 4 with class-based dark mode. Configuration is in 
 
 ## 📝 Known Issues
 
-| Issue                                       | Status                                                           |
-| ------------------------------------------- | ---------------------------------------------------------------- |
-| No backend database (data stored in memory) | 🟡 Due to assignment scope, restarting server clears submissions |
-| No deep nested schema support               | 🟡 Only flat field structures supported                          |
-| Edit submission uses sessionStorage         | 🟢 Works well, but could be improved with backend edit APIs      |
+| Issue                               | Status                                                                                                                                                                             |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No backend database (JSON file)     | 🟡 Data resets on server restart                                                                                                                                                   |
+| No deep nested schema support       | 🟡 Limited to flat fields                                                                                                                                                          |
+| Edit submission uses sessionStorage | 🟢 Works but can be improved                                                                                                                                                       |
+| Submission count varies on Vercel   | 🔴 Vercel serverless functions use an ephemeral filesystem. JSON data stored in `/tmp` is not persistent and may differ between instances, causing inconsistent submission counts. |
 
 ## 🤔 Assumptions
 
