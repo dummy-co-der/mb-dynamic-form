@@ -1,78 +1,47 @@
-import fs from 'fs';
-import path from 'path';
+import db from './database';
 // @ts-ignore
 import { v4 as uuid } from 'uuid';
+import { formSchema } from './schema.data';
 
-interface Submission {
+export interface Submission {
     id: string;
     createdAt: string;
     data: any;
 }
 
-// Path to your JSON file
-const dataFilePath = path.join('/tmp', 'submissions.json');
-let submissions: Submission[] = [];
-
-function loadSubmissions() {
-    if (!fs.existsSync(dataFilePath)) {
-        submissions = [];
-        saveSubmissions();
-        return;
-    }
-
-    try {
-        const jsonData = fs.readFileSync(dataFilePath, 'utf-8').trim();
-        if (jsonData === '') {
-            // Empty file, initialize empty array
-            submissions = [];
-            saveSubmissions();
-        } else {
-            submissions = JSON.parse(jsonData);
-        }
-    } catch (error) {
-        console.error('Error parsing JSON file, initializing empty submissions:', error);
-        submissions = [];
-        saveSubmissions();
-    }
+// Type for raw DB row
+interface DbRow {
+    id: string;
+    createdAt: string;
+    data: string; // always stored as JSON string in DB
 }
-
-// Save current submissions array to JSON file
-function saveSubmissions() {
-    fs.writeFileSync(dataFilePath, JSON.stringify(submissions, null, 2), 'utf-8');
-}
-
-// Initialize data on import
-loadSubmissions();
 
 export function addSubmission(payload: any): Submission {
-    const id: string = uuid();
-    const createdAt: string = new Date().toISOString();
+    const id = uuid();
+    const createdAt = new Date().toISOString();
+    const dataStr = JSON.stringify(payload);
 
-    const record = {
-        id,
-        createdAt,
-        data: payload
-    };
+    db.prepare('INSERT INTO submissions (id, createdAt, data) VALUES (?, ?, ?)')
+        .run(id, createdAt, dataStr);
 
-    submissions.push(record);
-    saveSubmissions(); // persist on add
-    return record;
+    return { id, createdAt, data: payload };
 }
 
 export function getPaginatedSubmissions({ page = 1, limit = 10, sortDirection = 'desc' }) {
-    const sorted = [...submissions].sort((a, b) => {
-        const aDate = new Date(a.createdAt).getTime();
-        const bDate = new Date(b.createdAt).getTime();
-        return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
-    });
+    const offset = (page - 1) * limit;
 
-    const total = sorted.length;
+    // explicitly type rows as DbRow[]
+    const rows = db.prepare(`
+        SELECT * FROM submissions
+        ORDER BY createdAt ${sortDirection.toUpperCase()}
+        LIMIT ? OFFSET ?
+    `).all(limit, offset) as DbRow[];
+
+    const total = (db.prepare('SELECT COUNT(*) AS count FROM submissions').get() as { count: number }).count;
     const totalPages = Math.max(1, Math.ceil(total / limit));
-    const start = (page - 1) * limit;
-    const end = start + limit;
 
     return {
-        data: sorted.slice(start, end),
+        data: rows.map((r) => ({ ...r, data: JSON.parse(r.data) })),
         page,
         limit,
         total,
@@ -81,31 +50,21 @@ export function getPaginatedSubmissions({ page = 1, limit = 10, sortDirection = 
 }
 
 export function getSubmissionById(id: string): Submission | null {
-    return submissions.find(s => s.id === id) || null;
+    const row = db.prepare('SELECT * FROM submissions WHERE id = ?').get(id) as DbRow | undefined;
+    if (!row) return null;
+    return { ...row, data: JSON.parse(row.data) };
 }
 
 export function updateSubmission(id: string, payload: any): Submission | null {
-    const index = submissions.findIndex(s => s.id === id);
-    if (index === -1) {
-        return null;
-    }
-
-    submissions[index] = {
-        ...submissions[index],
-        data: payload
-    };
-    saveSubmissions(); // persist on update
-
-    return submissions[index];
+    const dataStr = JSON.stringify(payload);
+    const info = db.prepare('UPDATE submissions SET data = ? WHERE id = ?').run(dataStr, id);
+    if (info.changes === 0) return null;
+    return getSubmissionById(id);
 }
 
 export function deleteSubmission(id: string): boolean {
-    const index = submissions.findIndex(s => s.id === id);
-    if (index === -1) {
-        return false;
-    }
-
-    submissions.splice(index, 1);
-    saveSubmissions(); // persist on delete
-    return true;
+    const info = db.prepare('DELETE FROM submissions WHERE id = ?').run(id);
+    return info.changes > 0;
 }
+
+export { formSchema };
