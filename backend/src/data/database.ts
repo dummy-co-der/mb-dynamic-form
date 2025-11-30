@@ -1,19 +1,16 @@
 import Database from 'better-sqlite3';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
-// Use ephemeral /tmp for Vercel deployment
-const isProd = process.env.VERCEL === '1';
-const dbPath = isProd
-    ? path.join('/tmp', 'submissions.sqlite')    // ephemeral
-    : path.join(__dirname, 'submissions.sqlite'); // local persistent file
+const isVercel = process.env.VERCEL === '1';
+// const dbPath = isVercel ? path.join('/tmp', 'submissions.sqlite') : path.join(__dirname, 'submissions.sqlite');
+const dbPath = path.join('/tmp', 'submissions.sqlite');
+// const dbPath = path.join(__dirname, 'submissions.sqlite'); 
 
-// Initialize file if it does not exist
 if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, '');
 
 const db = new Database(dbPath);
 
-// Create table if it doesn't exist
 db.prepare(`
   CREATE TABLE IF NOT EXISTS submissions (
     id TEXT PRIMARY KEY,
