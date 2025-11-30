@@ -45,7 +45,7 @@ export default function App() {
           <button
             onClick={toggleTheme}
             className="
-              px-4 py-2 rounded-lg text-sm font-medium border
+              px-3 py-2 rounded-full text-sm font-medium border
               bg-white 
               text-slate-700
               border-gray-300

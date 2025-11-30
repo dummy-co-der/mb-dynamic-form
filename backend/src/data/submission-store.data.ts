@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // @ts-ignore
 import { v4 as uuid } from 'uuid';
 
@@ -7,7 +9,40 @@ interface Submission {
     data: any;
 }
 
-const submissions: Submission[] = [];
+// Path to your JSON file
+const dataFilePath = path.join(__dirname, 'submissions.json');
+let submissions: Submission[] = [];
+
+function loadSubmissions() {
+    if (!fs.existsSync(dataFilePath)) {
+        submissions = [];
+        saveSubmissions();
+        return;
+    }
+
+    try {
+        const jsonData = fs.readFileSync(dataFilePath, 'utf-8').trim();
+        if (jsonData === '') {
+            // Empty file, initialize empty array
+            submissions = [];
+            saveSubmissions();
+        } else {
+            submissions = JSON.parse(jsonData);
+        }
+    } catch (error) {
+        console.error('Error parsing JSON file, initializing empty submissions:', error);
+        submissions = [];
+        saveSubmissions();
+    }
+}
+
+// Save current submissions array to JSON file
+function saveSubmissions() {
+    fs.writeFileSync(dataFilePath, JSON.stringify(submissions, null, 2), 'utf-8');
+}
+
+// Initialize data on import
+loadSubmissions();
 
 export function addSubmission(payload: any): Submission {
     const id: string = uuid();
@@ -20,6 +55,7 @@ export function addSubmission(payload: any): Submission {
     };
 
     submissions.push(record);
+    saveSubmissions(); // persist on add
     return record;
 }
 
@@ -58,6 +94,7 @@ export function updateSubmission(id: string, payload: any): Submission | null {
         ...submissions[index],
         data: payload
     };
+    saveSubmissions(); // persist on update
 
     return submissions[index];
 }
@@ -69,5 +106,6 @@ export function deleteSubmission(id: string): boolean {
     }
 
     submissions.splice(index, 1);
+    saveSubmissions(); // persist on delete
     return true;
 }
