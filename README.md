@@ -12,6 +12,19 @@ A full-stack dynamic form builder application that allows you to create and mana
 - **Responsive Design**: Fully responsive design that works on all devices
 - **Type-Safe**: Built with TypeScript for type safety across the stack
 
+## ✅ Milestone Completion Status
+
+| Milestone                                | Status       | Notes                                 |
+| ---------------------------------------- | ------------ | ------------------------------------- |
+| Dynamic form generation from JSON schema | ✅ Completed | Supports all required field types     |
+| Client-side validation                   | ✅ Completed | TanStack Form                         |
+| Server-side validation                   | ✅ Completed | Ensures validated submissions         |
+| Form submissions API                     | ✅ Completed | Pagination + sorting                  |
+| Submissions management UI                | ✅ Completed | View, Edit, Delete actions            |
+| Dark/Light theme support                 | ✅ Completed | Persistent theme toggle               |
+| Responsive UI                            | ✅ Completed | Mobile-friendly across all components |
+| Full TypeScript support                  | ✅ Completed | Both frontend and backend             |
+
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -109,7 +122,7 @@ cd frontend
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173` (or the port Vite assigns).
+The frontend will be available at `http://localhost:3000`.
 
 ### Building for Production
 
@@ -162,7 +175,7 @@ The form schema is defined in `backend/src/data/schema.data.ts`. Here's an examp
     {
       name: "fieldName",
       label: "Field Label",
-      type: "text" | "email" | "number" | "select" | "date" | "switch" | "textarea",
+      type: "text" | "email" | "number" | "select" | "multi-select" | "date" | "switch" | "textarea",
       placeholder: "Placeholder text",
       required: true | false,
       defaultValue: any,
@@ -187,6 +200,7 @@ The form schema is defined in `backend/src/data/schema.data.ts`. Here's an examp
 - **text** - Text input with optional `inputType` (email, password, tel)
 - **number** - Number input with min/max validation
 - **select** - Single selection dropdown
+- **multi-select** - Multiple section
 - **date** - Date picker
 - **switch** - Toggle switch (boolean)
 - **textarea** - Multi-line text input
@@ -221,6 +235,7 @@ Forms are automatically generated from the JSON schema, including:
 - Sortable by creation date
 - Responsive table design
 - Dark mode support
+- View, edit and delete actions
 
 ## 🧪 Development
 
@@ -265,3 +280,19 @@ The project uses Tailwind CSS 4 with class-based dark mode. Configuration is in 
 - `cors` - CORS middleware
 - `morgan` - HTTP logger
 - `uuid` - ID generation
+
+## 📝 Known Issues
+
+| Issue                                       | Status                                                           |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| No backend database (data stored in memory) | 🟡 Due to assignment scope, restarting server clears submissions |
+| No deep nested schema support               | 🟡 Only flat field structures supported                          |
+| Edit submission uses sessionStorage         | 🟢 Works well, but could be improved with backend edit APIs      |
+
+## 🤔 Assumptions
+
+- Schema does not contain nested field groups
+- IDs for submissions are always UUIDs
+- Editing a submission fully replaces the old one
+- Schema is rarely changed during runtime
+- Pagination is server-side but stored in memory for simplicity

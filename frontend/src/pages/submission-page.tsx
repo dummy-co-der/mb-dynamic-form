@@ -76,8 +76,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
 
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-1 w-40 sm:w-44 bg-white rounded-lg shadow-lg border border-slate-200 z-20 flex flex-col
-        "
+                    className="fixed mt-1 w-40 bg-white rounded-lg shadow-lg border border-slate-200 z-20 flex flex-col"
                 >
                     <button
                         onClick={(e) => {
@@ -382,7 +381,7 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
                                 rounded border border-slate-300 bg-white
                                 px-3 py-1 
                                 disabled:opacity-50 disabled:cursor-not-allowed
-                                text-xs sm:text-sm
+                                text-xs sm:text-sm cursor-pointer
                             "
                                 disabled={page <= 1 || query.isFetching}
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -395,7 +394,7 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
                                 rounded border border-slate-300 bg-white
                                 px-3 py-1 
                                 disabled:opacity-50 disabled:cursor-not-allowed
-                                text-xs sm:text-sm
+                                text-xs sm:text-sm cursor-pointer
                             "
                                 disabled={!data || page >= data.totalPages || query.isFetching}
                                 onClick={() =>

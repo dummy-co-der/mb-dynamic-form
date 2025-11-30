@@ -116,7 +116,7 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
                                 className={`
                                     px-4 py-2 rounded-lg text-sm font-medium
                                     transition-all duration-150
-                                    border-2
+                                    border-2 cursor-pointer
                                     ${isSelected
                                         ? 'bg-blue-600 text-white border-blue-600 shadow-md'
                                         : 'bg-white text-slate-700 border-slate-300 hover:border-blue-400 hover:bg-blue-50'
@@ -141,7 +141,7 @@ const FieldRenderer: React.FC<FieldProps> = ({ fieldDef, error, formField }) => 
                 type="button"
                 onClick={() => formField.handleChange(!formField.state.value)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full
-                    transition-all duration-200
+                    transition-all duration-200 cursor-pointer
                     ${formField.state.value
                         ? 'bg-blue-600'
                         : 'bg-slate-300'
